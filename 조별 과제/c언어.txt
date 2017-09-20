@@ -1,0 +1,757 @@
+#include<stdio.h>
+#include<conio.h>
+#include<stdlib.h>
+#include<string.h>
+#include<windows.h>
+#include<time.h>
+
+
+int menu; // 초기 메뉴를 위한 전역변수
+int arrangment[100][2]; // 2차원배열 선언
+int aa,bb,aa2,bb2; // 변수 선언
+
+int handler();
+int game_bowl();
+void gotoxy(int x, int y);
+
+int missile();
+
+int tail_game();
+
+int rullet();
+void display_rule(void);
+void draw_check02(int c,int r);
+void reel_series(int r[][3]);
+void gotoxy_rullet(int x,int y);
+int game_progress(int money);
+void display_reel(char rc[][3],int r[][3],int index);
+void clear_text(void);
+int game_control(char reel[][3],int reel_num[][3],int *money);
+int return_money(int r[],int betting, int *case_n);
+
+
+int main()
+
+{
+	system("mode con: cols=80 lines=32"); // 컴파일 창 크기 조절 함수
+	
+	while(1)
+	{
+		system("cls");				// 쭉 내려오는 걸 초기화면으로 깨끗하게
+		menu = game_bowl();			//메뉴선택
+		handler();				    //선택에 따라 처리
+	}
+
+	return 0;
+}
+
+int handler()
+{
+	if(menu==0)  
+	{
+		exit(0);					//게임 종료
+	}
+	if(menu==1)						//미사일 게임
+	{
+		missile(); 			
+	}
+	if(menu==2)						// 꼬리잡기 게임
+	{
+		return tail_game();
+	}
+	if(menu==3)					    // 룰렛 게임
+	{
+		return rullet();
+	}
+	return 1;
+}
+
+void gotoxy(int x, int y) 
+{
+	COORD pos={0,0};
+	pos.X=x;
+	pos.Y=y;
+	SetConsoleCursorPosition((GetStdHandle(STD_OUTPUT_HANDLE)),pos);  //좌표 함수 인터넷에서 보고 응용
+}
+//출력이될 콘솔창의 핸들을 구해서
+//pos 라는 구조체에 x,y 좌표를 입력하고  입력한 좌표로 커서를 이동시키는 api함수.
+
+int game_bowl()
+{
+	char aaa[10]={0};  
+
+	printf("[1]미사일 게임 [2]꼬리잡기 [3]룰렛 게임 [0]exit\n >> ");  
+	gets(aaa);   
+	return (atoi(aaa));             
+	                 //(여기선 문자열을 정수형으로) atio는 숫자로 이루어진 것이 정수로 반환하는 함수
+	                 // 수업시간에 배운 atio함수 활용.
+}
+
+int missile()
+{
+	int i,x,y;
+	int on=0;      // 위의 네모가 양옆으로 왔다 갔다.
+	int onN=2;    // 미사일의 x 좌표
+	int off=28;    // 위의 네모가 양옆으로 왔다 갔다
+	int offN=29;   // 밑에 미사일의 x 좌표
+
+    int dir=1;
+	int dirD=1;
+	int ran;
+	int down=1;   //위에 미사일 위치y 좌표
+	int up = 28;  //밑에 미사일 위치 y좌표
+	int dFire=0;
+	int uFire=0;
+
+	char key=0, key2=0;
+
+
+	for(;;)
+	{			//무한루프
+		system("cls");
+		for(i=0;i<32;i++)
+		{ 
+			printf("━");
+		}
+		printf("\n");
+
+
+
+		for(y=0;y<30;y++)
+		{
+			for(x=0;x<30;x++)
+			{
+
+				if(y==0)
+				{
+					if(x==on)
+					{
+						printf("□□□") ;
+
+					}
+					else
+					{
+						printf("  ");
+					}
+
+				}
+				else if(y ==29)
+				{
+					if(x==off)
+					{
+						printf("■■■") ;
+					}
+					else
+					{
+						printf("  ");
+						
+					}	
+				}
+				else
+				{
+					
+					if(x==onN)
+					{						
+						if(y == down)
+						{						
+							printf("▽");
+						}
+					}
+					else if(x==offN)
+					{
+						if(y==up)
+						{
+							printf("▲");
+						}
+					}
+					else
+					{
+						printf("  ");
+					}
+				}
+			}
+			printf("\n");
+		}
+
+
+
+		ran = rand()%3;
+
+		if(ran==0)
+		{
+			dir = 1;
+		}
+		else if(ran==1)
+		{
+			dir = -1;
+		}
+		else
+		{
+			dir=0;
+		}
+
+
+		if(on==0)
+		{
+			dir = 1;
+		}
+		else if(on==28)
+		{
+			dir = -1;
+		}
+
+		if(off==0)
+		{
+			dirD = 1;
+		}
+		else if(off==28)
+		{
+			dirD = -1;
+		}
+
+
+		down++;
+		if(down==28)
+		{
+			down=0;
+			dFire=1;
+		}
+		if(dFire==1)
+		{
+			onN=on; // 이렇게 함으로써 미사일과 네모가 같이 움직임
+		}
+		dFire=0;
+
+	    up--;  // 이 밑으로는 미사일 발사. 위로!
+		if(up==0)
+		{
+			up=28;
+			uFire=1;
+		}
+		if(uFire==1)
+		{
+			offN=off;
+		}
+
+		uFire=0;  //초기화를 안해주면 유도탄처럼 미사일이 휜다.
+		on += dir; //이동 초기값에서 랜덤으로 된 dir값을 받아 이동한다.
+
+		if((kbhit())) //방향키 입력!
+		{
+			key2=getch();
+
+			if(key2==75) //left
+			{
+				key='s';
+			}
+			if(key2==77) //right
+			{
+				key='w';		   
+			}
+		}
+		
+		if(key=='w') //방향키 입력
+		{
+			if(off != 28)
+			{
+			off++;
+			}
+		}
+		if(key=='s')
+		{
+			if(off != 0)
+			{
+			off--;
+			}
+		}
+
+
+		for(i=0;i<32;i++) 
+		{ 
+			printf("━");
+		}
+
+
+		if((up==2)&&((on == offN)||(on+1 == offN)||(on+2 == offN)))
+		{
+			system("cls");
+			printf("\n\n\n\n\n\n\n\n                                Win!!\n\n");
+			Sleep(2000);
+			return 1;
+		}
+		
+		if((down==27)&&((off == onN)||(off+1 == onN)||(off+2 == onN)))
+		{
+			system("cls");
+			printf("\n\n\n\n\n\n\n\n                                Lose!!\n\n");
+			Sleep(2000);
+			return 1;
+		}
+	}	
+}
+
+int tail_game()
+{
+	int a,b,c;  //반복문+ 값을 갖기 위한 임의의 변수 선언.
+	int headd=1,move=0,tail=0,dx=6,dy=6; //headd : 머리, move : 움직임, tail : 꼬리갯수, dx : 먹이X좌표 dy : 먹이Y좌표
+	int move2=0,speed=0,heart=3,move3=0;  // move2 : ,speed : 스피드, heart : 목숨
+	int cx=40,cy=11,gameover=0,lmove=0; // cx : 머리의 X좌표 cy : 머리의 Y좌표 gameover : 게임오버 유무 lmove : 
+	
+	//key하고 key2는 방향을 받기 위해 선언!
+	//문자형을 받아서 0으로 지정해 초기화 선언!
+	char key=0; 
+	char key2=0; 		
+	
+	system("cls"); 
+	for(a=1;a<=40;a++) 
+	{
+		a=40;   // 40은 이동 속도!!!
+		c=a;		
+		move2=c*1000; // 꼬리가 이동할 수 있는 움직임
+		while(1)
+		{
+			Sleep(10);
+			speed++;
+			
+			
+			if(dx==cx && dy==cy)					//머리(■)가 먹이(♡)를 먹으면
+			{
+				tail++;								//꼬리증가
+				arrangment[tail][0]=cx;				//꼬리 뒤에 X좌표 따라다니게 함
+				arrangment[tail][1]=cy;				//꼬리 뒤에 Y좌표 따라다니게 함
+				
+				dx=(rand()%38)*2+2;					//랜덤함수 발생해서 새로운 먹이의 X좌표 지정
+				dy=rand()%19+3;						//랜덤함수 발생해서 새로운 먹이의 Y좌표 지정				
+													// 랜덤값을 지정 이유는 콘솔 화면내의 인터페이스를 잡아주기 위해서			
+				
+			}
+			
+			
+			if(speed>=30-((c*2)/3)) //스피드가 3--((c*2)*3))을 넘으면
+			{                      //꼬리를 표시하던곳을 공백으로 바꾸는 부분
+				gotoxy(arrangment[tail-1][0],arrangment[tail-1][1]); 
+				printf("  ");
+				if(tail>0) //꼬리가 1개 이상이면
+				{
+					aa=arrangment[0][0]; //aa 에 arrangment [0][0]을 넣어둠
+					bb=arrangment[0][1]; //bb 에 arrangment [0][1]을 넣어둠
+					arrangment[0][0]=cx; //arrangment[0][0]에 cx의 값을 넣음
+					arrangment[0][1]=cy; //arrangment[0][1]에 cy의 값을 넣음
+				}
+				else //꼬리가 없으면
+				{
+					arrangment[0][0]=0; //arrangment[0][0] 초기화
+					arrangment[0][1]=0; //arrangment[0][1] 초기화
+				}
+				for(b=1;b<tail;b++) //b가 꼬리보다 작을때까지
+				{
+					if(cx==arrangment[b][0] && cy==arrangment[b][1]) //만약 머리의 x,y좌표가 arrangment의 좌표와 같다면(자기몸을 먹으면)
+					{
+						gameover=1; //죽는다
+					}
+					aa2=arrangment[b][0];
+					bb2=arrangment[b][1];
+					arrangment[b][0]=aa;
+					arrangment[b][1]=bb;
+					aa=aa2;
+					bb=bb2;
+					
+				}
+				
+				if(tail==0) 
+					gotoxy(cx,cy);
+				printf("  ");
+				if(key=='w') //방향키 입력
+				{
+					move++;
+					move3++;
+					cx+=2;
+				}
+				if(key=='s')
+				{
+					move++;
+					move3++;
+					cx-=2;
+				}
+				if(key=='a')
+				{
+					move++;
+					move3++;
+					cy++;
+				}
+				if(key=='d')
+				{
+					move++;
+					move3++;
+					cy--;
+				}
+
+				if(cx> 78 || cx <2 || cy> 22 || cy <2 || move2<move || gameover==1) 
+					///꼬리가 죽는 범위를 지정하기 위해서..!
+				{
+					gameover=0;
+					system("cls");
+					gotoxy(10,11);
+					heart--;					
+					
+					if(heart>0) //목숨이 0이 되면 처리하는 부분(죽으면 나타나는부분)
+						//죽고 나서 다시 만듬!!!!
+					{
+						printf("you die!!!");
+						cx=40,cy=11,headd=1,tail=0,dx=10,dy=11,key=0; //다시 초기화
+						move3=0;
+						Sleep(1000); // 다시 본 게임으로 돌아가는 속도
+						system("cls");
+						
+					}
+					
+					else
+					{
+						printf("Game over!!!");
+						Sleep(1000);
+						system("cls");
+						
+						return 1;					
+						
+					}
+					
+				}				
+				
+				gotoxy(0,24); //♥의 좌표값
+				printf("───────────────────────────────　HEART ");
+				
+				for(b=0;b<heart;b++)
+				{
+					printf("♥");
+				}
+				
+				for(int c=b; c<4 ; c++)
+				{
+					printf("　");
+				}
+				printf("─");
+				
+				speed=0; //다시 초기화
+				
+				gotoxy(dx,dy); //먹이 표시
+				printf("♥");
+				gotoxy(cx,cy); //현재 머리 표시
+				printf("■");
+				
+				for(b=0;b<tail;b++) //◆를 출력하는부분
+				{
+					gotoxy(arrangment[b][0],arrangment[b][1]);
+					printf("♥");
+				}
+			}
+			
+			if((kbhit())) //방향키 입력!
+			{
+				key2=getch();
+				
+				if(key2==72) //up
+				{
+					key='d';
+				}
+				if(key2==80) //down
+				{
+					key='a';
+				}
+				if(key2==75) //left
+				{
+					key='s';
+				}
+				if(key2==77) //right
+				{
+					key='w';		   
+				}
+			}			
+		}  
+	}
+	return 1; 
+}
+
+
+int rullet()
+{
+	system("cls");
+	char reel[6][3]={"★","♠","◆","♥","♣","○"};
+	int i,reel_num[3][3];
+	int money=10000;
+	srand(time(NULL));
+	printf("슬롯머신게임\n\n");
+	display_rule();
+	gotoxy(3, 5);
+	printf("릴1 릴2 릴3");
+	gotoxy(1,6);
+	draw_check02(3, 3);
+	for(i=0;i<3;i++)
+		reel_num[0][i]=rand()%5;
+	reel_series(reel_num);
+
+	int j=1;
+	
+	do
+	{
+		j=game_control(reel, reel_num, &money);
+		
+	}while(j!=0);
+	gotoxy(3,20);
+
+	system("cls");		
+	return game_bowl();	
+}
+
+void display_rule(void)
+{
+	gotoxy(30, 3);
+	printf("    릴1  릴2  릴3   사례금\n");
+	gotoxy(30, 4);
+	printf("-------------------------------\n");
+	gotoxy(30, 5);
+	printf("1:  ★   ★   ★\t *10\n");
+	gotoxy(30, 6);
+	printf("2:  ♠   ♠   ♠\t *7\n");
+	gotoxy(30, 7);
+	printf("3:  ◆   ◆   ◆\t *5\n");
+	gotoxy(30, 8);
+	printf("4:  ★   ★   기타\t *5\n");
+	gotoxy(30, 9);
+	printf("5:  ♠   ♠   기타\t *3\n");
+	gotoxy(30, 10);
+	printf("6:  ◆   ◆   기타\t *3\n");
+	gotoxy(30, 11);
+	printf("7:  ♥   ♥   기타\t *3\n");
+	gotoxy(30, 12);
+	printf("8:  ♣   ♣   기타\t *2\n");
+	gotoxy(30, 13);
+	printf("9:  ○   ○   기타\t *1\n");
+}
+
+void draw_check02(int c,int r)
+{
+	int i,j;
+	unsigned char a=0xa6;
+	unsigned char b[12];
+	for(i=1;i<12;i++)
+		b[i]=0xa0+i;
+	printf("%c%c",a, b[3]);
+	for(i=0;i<c-1;i++)
+	{
+		printf("%c%c", a, b[1]);
+		printf("%c%c", a, b[8]);
+	}
+	printf("%c%c", a, b[1]);
+	printf("%c%c", a, b[4]);
+	printf("\n");
+	for(i=0;i<r-1;i++)
+	{
+		printf("%c%c", a, b[2]);
+		for(j=0;j<c;j++)
+		{
+			printf(" ");
+			printf("%c%c",a, b[2]);
+		}
+		printf("\n");
+		printf("%c%c", a, b[7]);
+		for(j=0;j<c-1;j++)
+		{
+			printf("%c%c", a, b[1]);
+			printf("%c%c", a, b[11]);
+		}
+		printf("%c%c",a, b[1]);
+		printf("%c%c",a, b[9]);
+		printf("\n");
+	}
+	printf("%c%c", a, b[2]);
+	for(j=0;j<c;j++)
+	{
+		printf(" ");
+		printf("%c%c",a, b[2]);
+	}
+	printf("\n");
+	printf("%c%c", a, b[6]);
+	for(i=0;i<c-1;i++)
+	{
+		printf("%c%c", a, b[1]);
+		printf("%c%c", a, b[10]);
+	}
+	printf("%c%c", a, b[1]);
+	printf("%c%c", a, b[5]);
+	printf("\n");
+}
+
+void reel_series(int r[][3])
+{
+	int i,j;
+	for(i=0;i<3;i++)
+		for(j=0;j<3;j++)
+			r[j][i]=(r[0][i]+j)%6;
+		
+}
+
+void gotoxy_rullet(int x, int y)
+{
+	COORD Pos= {x - 1, y - 1};
+	SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE),Pos);
+}
+
+int game_progress(int money)
+{
+	int bet;
+	gotoxy(43, 17);
+	printf("현재 남은 금액: %d원", money);
+	gotoxy(1, 17);
+	printf("배팅금액을 입력하고 Enter키를 누르면");
+	gotoxy(1, 19);
+	printf("0을 입력하면 종료합니다,");
+	gotoxy(1, 18);
+	printf("게임을 시작합니다, 금액 입력>");
+	gotoxy(30, 18);
+	scanf("%d", &bet);
+	if(bet==0)
+		return 0;
+	gotoxy(1, 19);
+	printf("아무키나 한번만 키를 누르면 릴이 멈춥니다.");
+	return bet;
+}
+
+void display_reel(char rc[][3], int r[][3], int index)
+{
+	int i,j;
+	for(i=0;i<3;i++)
+		for(j=index;j<3;j++)
+		{
+			gotoxy(3+j*4, 7+i*2);
+			printf("%s", rc[r[i][j]]);
+		}
+}
+
+void clear_text(void)
+{
+	int i,j;
+	for(i=17;i<20;i++)
+	{
+		gotoxy(1, i);
+		for(j=0;j<42;j++)
+			printf(" ");
+	} 
+}
+/*
+void reel_series(int r[][3])
+{
+int i,j;
+for(i=0;i<3;i++)
+for(j=0;j<3;j++)
+r[i][j]=(r[0][i]+j)%6;
+}
+*/
+/*
+void display_reel(char rc[][3],int r[][3],int index)
+{
+int i,j;
+for(i=0;i<3;i++)
+for(j=index;j<3;j++)
+{
+gotoxy(3+j*4,7+i*2);
+printf("%s",rc[r[i][j]]);
+}
+}
+*/
+int game_control(char reel[][3], int reel_num[][3], int *money)
+{
+	int i,j,bet,case_num=0,thank,num[3];
+	double pst;
+	clock_t start,end;
+	
+	display_reel(reel, reel_num, 0);
+	bet=game_progress(*money);
+
+	if(bet==0)
+	{
+		return 0;
+	}
+	
+	for(i=0;i<3;i++)
+	{
+		start=clock();
+		do
+		{
+			for(j=1;j<3;j++)
+				reel_num[0][j]=reel_num[1][j];
+			reel_series(reel_num);
+			display_reel(reel, reel_num, i);
+			end=clock();
+			pst=(double)(end-start)/CLK_TCK;
+		}while(!kbhit() || (pst<1));
+		num[i]=reel_num[1][i];	
+	}
+	getch();
+	thank=return_money(num, bet, &case_num);
+	if(thank==0)
+		*money-=bet;
+	else
+		*money+=thank;
+	if(case_num)
+	{
+		gotoxy(43, 18);
+		printf("사례:%d,배팅:%d원,사례금:%d",case_num,bet,thank);
+	}
+	clear_text();
+	return 1;
+}
+
+int return_money(int r[],int betting,int *case_num)
+{
+	int total=0;
+	if(r[0]==r[1] && r[1]==r[2] && r[0]==r[2])
+	{
+		if(r[0]==0)
+		{
+			total=betting*10;
+			*case_num=1;
+		}
+		else if(r[0]==1)
+		{
+			total=betting*7;
+			*case_num=2;
+		}
+		else if(r[0]==2)
+		{
+			total=betting*5;
+			*case_num=3;
+		}
+	}
+	else if((r[0]==0 && r[1]==0 )|| (r[1]==0 && r[2]==0)|| (r[0]==0 && r[2]==0))
+	{
+		total=betting*4;
+		*case_num=4;
+	}
+	else if( (r[0]==1 && r[1]==1) || (r[1]==1 && r[2]==1) || (r[0]==1 && r[2]==1))
+	{
+		total=betting*3;
+		*case_num=5;
+	}
+	else if( (r[0]==2 && r[1]==2)|| (r[1]==2 && r[2]==2)|| (r[0]==2 && r[2]==2))
+	{
+		total=betting*3;
+		*case_num=6;
+	}
+	else if((r[0]==3 && r[1]==3) || (r[1]==3 && r[2]==3) || (r[0]==3 && r[2]==3))
+	{
+		total=betting*3;
+		*case_num=7;
+	}
+	else if((r[0]==4 && r[1]==4) || (r[1]==4 && r[2]==4 ) || (r[0]==4 && r[2]==4))
+	{
+		total=betting*2;
+		*case_num=8;
+
+	}
+    else if(( r[0]==5 && r[1]==5) || (r[1]==5 && r[2]==5) || (r[0]==5 && r[2]==5))
+	{
+		total=betting*1;
+		*case_num=9;
+	}
+	return total;
+}
